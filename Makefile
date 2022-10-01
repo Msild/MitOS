@@ -1,5 +1,5 @@
 #
-#	File: Source/MitOS/Makefile
+#	File: Makefile
 #	Copyright: MLworkshop
 #	Author: Msild
 #
