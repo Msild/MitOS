@@ -1,0 +1,18 @@
+#
+#	File: Source/MitOS/.gitignore
+#	Copyright: MLworkshop
+#	Author: Msild
+#
+
+# Ignore options files, build results, etc.
+
+# Visual Studio Code options directory
+.vscode/
+
+# Build results
+*.obj
+*.lst
+*.map
+*.bin
+*.mit
+*.sys
