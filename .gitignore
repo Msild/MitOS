@@ -14,5 +14,7 @@
 *.lst
 *.map
 *.bin
+*.bim
+*.lib
 *.mit
 *.sys

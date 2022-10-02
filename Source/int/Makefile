@@ -6,7 +6,7 @@
 
 TARGET    = error.obj int.obj keyboard.obj mouse.obj timer.obj
 
-BUILDPATH = ../../../Tool/build/
+BUILDPATH =
 INCPATH   = ../include/
 
 MAKE      = $(BUILDPATH)make.exe -r

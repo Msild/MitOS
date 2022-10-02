@@ -4,9 +4,9 @@
 #	Author: Msild
 #
 
-TARGET    = floppy.obj
+TARGET    = floppy.obj hd.obj
 
-BUILDPATH = ../../../Tool/build/
+BUILDPATH =
 INCPATH   = ../include/
 
 MAKE      = $(BUILDPATH)make.exe -r

@@ -1,6 +1,9 @@
-# **MitOS**  README.MD
+# **MitOS**  README
 
-![ML MitOS](https://img.shields.io/badge/ML-MitOS-blue?style=flat-square)
+![MLworkshop MitOS](https://img.shields.io/badge/MLworkshop-MitOS-blue?style=flat-square)
+
+![](https://img.shields.io/github/stars/Msild/MitOS.svg?style=flat-square&color=yellow)
+![](https://img.shields.io/github/release/Msild/MitOS.svg?style=flat-square&color=green)
 
 ## 目录
   * [简介](#简介)
@@ -10,14 +13,14 @@
 
 ## 简介
 
-MitOS 是一个简单的32位操作系统，其大小可容纳在一张 1.44M 软盘下，支持图形用户界面、鼠标操作、内存管理、分段、多任务等内容。系统采用汇编语言和C语言编写，运行速度迅捷。
+MitOS 是一个简单的 32 位操作系统，其大小可容纳在一张 1.44M 软盘下，支持图形用户界面、鼠标操作、内存管理、分段、多任务等内容。系统采用汇编语言和 C 语言编写，运行速度迅捷。
 
 ## 运行环境
 
-要运行 MitOS ，您的计算机需满足以下条件：
+要安装或运行 MitOS ，您的计算机需满足以下条件：
   * Intel 486 处理器或更高
-  * 32MB 可用 RAM
-  * 3.5inch 软盘驱动器
+  * 32 MiB 可用 RAM
+  * 3.5 inch 软盘或 CD-ROM 驱动器
 
 您也可以在虚拟机上体验 MitOS 。
 
@@ -25,7 +28,7 @@ MitOS 是一个简单的32位操作系统，其大小可容纳在一张 1.44M �
 
 请协助我们完善 MitOS 。如果您有任何意见或建议，请[联系](mailto:msild.mc@gmail.com)。
 
-如果您认为在使用时出现了Bug，请发 [Issue](https://github.com/Msild/MitOS/issues/new)。
+如果您认为在使用时出现了 Bug，请发 [Issue](https://github.com/Msild/MitOS/issues/new)。
 
 ## 许可信息
 

@@ -7,17 +7,17 @@
 #include "../MitOS.h"
 #include <stddef.h>
 
-#define FD_STATUS		0x3f4
-#define FD_DATA			0x3f5
-#define FD_DOR			0x3f2	/* 数字输出寄存器 */
-#define FD_DIR			0x3f7	/* 数字输入寄存器（只读） */
-#define FD_DCR			0x3f7	/* 磁盘控制寄存器（只写） */
+#define FD_STATUS			0x3f4
+#define FD_DATA				0x3f5
+#define FD_DOR				0x3f2	/* 数字输出寄存器 */
+#define FD_DIR				0x3f7	/* 数字输入寄存器（只读） */
+#define FD_DCR				0x3f7	/* 磁盘控制寄存器（只写） */
 
-#define STATUS_BUSYMASK	0x0F	/* 设备忙掩码 */
-#define STATUS_BUSY		0x10	/* FDC 忙 */
-#define STATUS_DMA		0x20	/* 0- DMA 模式 */
-#define STATUS_DIR		0x40	/* 0- cpu->fdc */
-#define STATUS_READY	0x80	/* 数据注册就绪 */
+#define STATUS_BUSYMASK		0x0F	/* 设备忙掩码 */
+#define STATUS_BUSY			0x10	/* FDC 忙 */
+#define STATUS_DMA			0x20	/* 0- DMA 模式 */
+#define STATUS_DIR			0x40	/* 0- cpu->fdc */
+#define STATUS_READY		0x80	/* 数据注册就绪 */
 
 #define DMA_READ 0x46
 #define DMA_WRITE 0x4A
@@ -56,7 +56,7 @@ static int output_byte(char byte)
 /*
 	@brief 复位软盘控制器。
 */
-static void fd_reset()
+void fd_reset()
 {
 	int i;
 	io_cli();
@@ -64,14 +64,14 @@ static void fd_reset()
 	for (i = 0; i < 100; i++) {
 		/* asm("nop"); */ /* 延时以保证重启完成 */
 	}
-	io_out8(FD_DOR, 0xc); /* 选择DMA模式软驱A */
+	io_out8(FD_DOR, 0xc); /* 选择 DMA 模式软驱A */
 	io_sti();
 }
 
-static void fd_setarg()
+void fd_setarg()
 {
 	output_byte(FD_SPECIFY);
-	output_byte(0xCF); /* 马达步进速度、磁头卸载时间 32ms */
+	output_byte(0xcf); /* 马达步进速度、磁头卸载时间 32ms */
 	output_byte(6);
 }
 
@@ -80,7 +80,7 @@ static void fd_setarg()
 	@param buf 缓冲区。
 	@param command 命令。
 */
-static void SetDMA(unsigned char *buf, unsigned char cmd)
+static void set_dma(unsigned char *buf, unsigned char cmd)
 {
 	long addr = (long)buf;
 	io_cli();
@@ -140,18 +140,18 @@ int fd_io(char command, unsigned int sect, unsigned char *buf)
 	output_byte(current_dev);
 	output_byte(seek_track);
 
-	/* 设置DMA，准备传送数据 */
-	SetDMA(buf, command);
+	/* 设置 DMA，准备传送数据 */
+	set_dma(buf, command);
 
-	/* 发送读扇区命令 */
-	output_byte(command);			/* command */
-	output_byte(current_dev);		/* driver no. */
-	output_byte(track);				/* track no. */
-	output_byte(head);				/* head */
-	output_byte(sector);			/* start sector */
-	output_byte(2);					/* sector size = 512 */
-	output_byte(floppy_type.sect);	/* Max sector */
-	output_byte(floppy_type.gap);	/* sector gap */
-	output_byte(0xFF);				/* sector size (0xff when n!=0 ?) */
+	/* 发送扇区命令 */
+	output_byte(command);			/* 命令 */
+	output_byte(current_dev);		/* 驱动器号 */
+	output_byte(track);				/* 磁道 */
+	output_byte(head);				/* 磁头 */
+	output_byte(sector);			/* 开始扇区 */
+	output_byte(2);					/* 扇区大小位 512 */
+	output_byte(floppy_type.sect);	/* 最大扇区 */
+	output_byte(floppy_type.gap);	/* 扇区差 */
+	output_byte(0xFF);				/* 扇区大小 */
 	return 0;
 }

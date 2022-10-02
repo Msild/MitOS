@@ -6,7 +6,7 @@
 
 TARGET    = stdlib.lib
 
-BUILDPATH = ../../../Tool/build/
+BUILDPATH =
 INCPATH   = ../include/
 
 MAKE      = $(BUILDPATH)make.exe -r

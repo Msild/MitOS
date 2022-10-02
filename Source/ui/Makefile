@@ -6,7 +6,7 @@
 
 TARGET    = graphic.obj jpeg.obj sheet.obj taskbar.obj window.obj bmp.obj
 
-BUILDPATH = ../../../Tool/build/
+BUILDPATH =
 INCPATH   = ../include/
 
 MAKE      = $(BUILDPATH)make.exe -r

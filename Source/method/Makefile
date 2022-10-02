@@ -7,7 +7,7 @@
 TARGET    = alloca.obj asmfunc.obj crc32.obj dsctbl.obj fifo.obj memory.obj \
             mtask.obj time.obj res.obj tek.obj
 
-BUILDPATH = ../../../Tool/build/
+BUILDPATH =
 INCPATH   = ../include/
 
 MAKE      = $(BUILDPATH)make.exe -r

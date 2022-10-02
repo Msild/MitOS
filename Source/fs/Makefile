@@ -6,7 +6,7 @@
 
 TARGET    = fat12.obj
 
-BUILDPATH = ../../../Tool/build/
+BUILDPATH =
 INCPATH   = ../include/
 
 MAKE      = $(BUILDPATH)make.exe -r

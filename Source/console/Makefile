@@ -6,7 +6,7 @@
 
 TARGET    = api.obj arg.obj cmos.obj command.obj console.obj file.obj
 
-BUILDPATH = ../../../Tool/build/
+BUILDPATH =
 INCPATH   = ../include/
 
 MAKE      = $(BUILDPATH)make.exe -r
