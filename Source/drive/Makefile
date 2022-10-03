@@ -11,7 +11,7 @@ INCPATH   = ../include/
 
 MAKE      = $(BUILDPATH)make.exe -r
 NASK      = $(BUILDPATH)nask.exe
-NASM       = $(BUILDPATH)nasm.exe -fcoff
+NASM      = $(BUILDPATH)nasm.exe -fcoff
 MCC       = $(BUILDPATH)mcc.exe -I$(INCPATH) -Os -Wall -quiet
 GAS2NASK  = $(BUILDPATH)gas2nask.exe -a
 ATTRIB    = attrib

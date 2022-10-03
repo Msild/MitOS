@@ -9,13 +9,13 @@
 #include <string.h>
 #include <stdlib.h>
 
-void CommandNcRun(struct CONSOLE *cons, struct ARG arg, int memtotal);
-int ConsoleGetChar(void);
-char *ConsoleGetString(struct CONSOLE *cons, char *src);
-inline void SyntaxError(struct CONSOLE *cons);
-inline void SwitchError(struct CONSOLE *cons, char *sw);
-inline int WithoutSwitch(struct CONSOLE *cons, struct ARG arg);
-inline void WithoutPermissions(struct CONSOLE *cons);
+void command_ncrun(struct CONSOLE *cons, struct ARG arg, int memtotal);
+int console_getchar(void);
+char *console_getstring(struct CONSOLE *cons, char *src);
+inline void syntax_error(struct CONSOLE *cons);
+inline void switch_error(struct CONSOLE *cons, char *sw);
+inline int no_switch(struct CONSOLE *cons, struct ARG arg);
+inline void no_permissions(struct CONSOLE *cons);
 
 static char help_text_attrib[] = {
 	"Display or set the attributes of a file.\n"
@@ -192,7 +192,7 @@ void command_attrib(struct CONSOLE *cons, struct ARG arg)
 			} else if (arg.argv[i][1] == 'A' || arg.argv[i][1] == 'a') {
 				prop += 0x20;
 			} else {
-				SwitchError(cons, arg.argv[i]);
+				switch_error(cons, arg.argv[i]);
 				return;
 			}
 		} else {
@@ -200,7 +200,7 @@ void command_attrib(struct CONSOLE *cons, struct ARG arg)
 		}
 	}
 	if (*filename == 0) {
-		SyntaxError(cons);
+		syntax_error(cons);
 		return;
 	}
 	struct FILEINFO *finfo = 
@@ -234,7 +234,7 @@ void command_attrib(struct CONSOLE *cons, struct ARG arg)
 
 void command_chtime(struct CONSOLE *cons, struct ARG arg)
 {
-	if (WithoutSwitch(cons, arg)) {
+	if (no_switch(cons, arg)) {
 		return;
 	}
 	unsigned int year, month, mday, hour, minute, second, wday, status = 0, key = 0;
@@ -260,7 +260,7 @@ void command_chtime(struct CONSOLE *cons, struct ARG arg)
 			/* 设置年份 */
 			console_print(cons, "\x06%04d\x06/%02d/%02d  %02d:%02d:%02d  %s     ", 
 			            year, month, mday, hour, minute, second, weeks[wday]);
-			key = ConsoleGetChar();
+			key = console_getchar();
 			key -= 256;
 			if (key == '6') {
 				status = 1;
@@ -277,7 +277,7 @@ void command_chtime(struct CONSOLE *cons, struct ARG arg)
 			/* 设置月份 */
 			console_print(cons, "%04d/\x06%02d\x06/%02d  %02d:%02d:%02d  %s     ", 
 			            year, month, mday, hour, minute, second, weeks[wday]);
-			key = ConsoleGetChar();
+			key = console_getchar();
 			key -= 256;
 			if (key == '4') {
 				status = 0;
@@ -296,7 +296,7 @@ void command_chtime(struct CONSOLE *cons, struct ARG arg)
 			/* 设置日期 */
 			console_print(cons, "%04d/%02d/\x06%02d\x06  %02d:%02d:%02d  %s     ", 
 			            year, month, mday, hour, minute, second, weeks[wday]);
-			key = ConsoleGetChar();
+			key = console_getchar();
 			key -= 256;
 			int mon_days = 0, rn = 0;
 			if (ISLEAP(year)) {
@@ -339,7 +339,7 @@ void command_chtime(struct CONSOLE *cons, struct ARG arg)
 			/* 设置时 */
 			console_print(cons, "%04d/%02d/%02d  \x06%02d\x06:%02d:%02d  %s     ", 
 			            year, month, mday, hour, minute, second, weeks[wday]);
-			key = ConsoleGetChar();
+			key = console_getchar();
 			key -= 256;
 			if (key == '4') {
 				status = 2;
@@ -358,7 +358,7 @@ void command_chtime(struct CONSOLE *cons, struct ARG arg)
 			/* 设置分 */
 			console_print(cons, "%04d/%02d/%02d  %02d:\x06%02d\x06:%02d  %s     ", 
 			            year, month, mday, hour, minute, second, weeks[wday]);
-			key = ConsoleGetChar();
+			key = console_getchar();
 			key -= 256;
 			if (key == '4') {
 				status = 3;
@@ -377,7 +377,7 @@ void command_chtime(struct CONSOLE *cons, struct ARG arg)
 			/* 设置秒 */
 			console_print(cons, "%04d/%02d/%02d  %02d:%02d:\x06%02d\x06  %s     ", 
 			            year, month, mday, hour, minute, second, weeks[wday]);
-			key = ConsoleGetChar();
+			key = console_getchar();
 			key -= 256;
 			if (key == '4') {
 				status = 4;
@@ -396,7 +396,7 @@ void command_chtime(struct CONSOLE *cons, struct ARG arg)
 			/* 设置星期 */
 			console_print(cons, "%04d/%02d/%02d  %02d:%02d:%02d  \x06%s\x06     ", 
 			            year, month, mday, hour, minute, second, weeks[wday]);
-			key = ConsoleGetChar();
+			key = console_getchar();
 			key -= 256;
 			if (key == '4') {
 				status = 5;
@@ -425,8 +425,8 @@ void command_chtime(struct CONSOLE *cons, struct ARG arg)
 
 void command_cls(struct CONSOLE *cons, struct ARG arg)
 {
-	if (WithoutSwitch(cons, arg)) {
-		SyntaxError(cons);
+	if (no_switch(cons, arg)) {
+		syntax_error(cons);
 		return;
 	}
 	int x, y;
@@ -473,7 +473,7 @@ draw:
 		sheet_refresh(cons->sht, 6, 26, 251, 160);
 		console_newline(cons);
 	} else {
-		SyntaxError(cons);
+		syntax_error(cons);
 		return;
 	}
 	return;
@@ -485,14 +485,14 @@ void command_crc32(struct CONSOLE *cons, int *fat, struct ARG arg)
 	char filename[12] = {0};
 	for (i = 1; i < arg.argc; i++) {
 		if (arg.argv[i][0] == '-') {
-			SwitchError(cons, arg.argv[i]);
+			switch_error(cons, arg.argv[i]);
 			return;
 		} else {
 			strncpy(filename, arg.argv[i], 12);
 		}
 	}
 	if (*filename == 0) {
-		SyntaxError(cons);
+		syntax_error(cons);
 		return;
 	}
 	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
@@ -518,12 +518,12 @@ void command_delete(struct CONSOLE *cons, struct ARG arg)
 	int i;
 	struct FILEINFO *finfo;
 	if (arg.argc < 2) {
-		SyntaxError(cons);
+		syntax_error(cons);
 		return;
 	}
 	for (i = 1; i < arg.argc; i++) {
 		if (arg.argv[i][0] == '-') {
-			SwitchError(cons, arg.argv[i]);
+			switch_error(cons, arg.argv[i]);
 			return;
 		} else {
 			finfo = file_search(arg.argv[i], (struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
@@ -546,7 +546,7 @@ void command_dir(struct CONSOLE *cons, struct ARG arg)
 			if (check_switch(arg.argv[i], "-n", 2)) {
 				sw_n = 1;
 			} else {
-				SwitchError(cons, arg.argv[i]);
+				switch_error(cons, arg.argv[i]);
 				return;
 			}
 		}
@@ -557,7 +557,7 @@ void command_dir(struct CONSOLE *cons, struct ARG arg)
 	for (i = 0; i < 224; i++) {
 		if (line > CONSOLE_LINE - 2 && sw_n) {
 			console_puts(cons, "\x06-- More --\x06");
-			ConsoleGetChar();
+			console_getchar();
 			console_puts(cons, "\n");
 			line = 0;
 		}
@@ -598,7 +598,7 @@ void command_dir(struct CONSOLE *cons, struct ARG arg)
 
 void command_disk(struct CONSOLE *cons, struct ARG arg)
 {
-	if (WithoutSwitch(cons, arg)) {
+	if (no_switch(cons, arg)) {
 		return;
 	}
 	char *BS_VolLab = (char *) (ADR_DISKIMG + 43);
@@ -670,14 +670,14 @@ void command_find(struct CONSOLE *cons, struct ARG arg)
 	char filename[12] = {0};
 	for (i = 1; i < arg.argc; i++) {
 		if (arg.argv[i][0] == '-') {
-			SwitchError(cons, arg.argv[i]);
+			switch_error(cons, arg.argv[i]);
 			return;
 		} else {
 			strncpy(filename, arg.argv[i], 12);
 		}
 	}
 	if (*filename == 0) {
-		SyntaxError(cons);
+		syntax_error(cons);
 		return;
 	}
 	struct FILEINFO *finfo = 
@@ -714,7 +714,7 @@ void command_help(struct CONSOLE *cons, struct ARG arg)
 			if (check_switch(arg.argv[i], "-n", 2)) {
 				sw_n = 1;
 			} else {
-				SwitchError(cons, arg.argv[i]);
+				switch_error(cons, arg.argv[i]);
 				return;
 			}
 		}
@@ -750,7 +750,7 @@ void command_help(struct CONSOLE *cons, struct ARG arg)
 		for (i = 0; i < 25; i++) {
 			if (k > CONSOLE_LINE - 2 && sw_n) {
 				console_puts(cons, "\x06-- More --\x06");
-				ConsoleGetChar();
+				console_getchar();
 				console_puts(cons, "\n");
 				k = 0;
 			}
@@ -826,7 +826,7 @@ void command_history(struct CONSOLE *cons, struct ARG arg)
 			} else if (check_switch(arg.argv[i], "-n", 2)) {
 				sw_n = 1;
 			} else {
-				SwitchError(cons, arg.argv[i]);
+				switch_error(cons, arg.argv[i]);
 				return;
 			}
 		}
@@ -837,7 +837,7 @@ void command_history(struct CONSOLE *cons, struct ARG arg)
 		for (i = 0; i < cons->cmd_num; i++) {
 			if (k > CONSOLE_LINE - 2 && sw_n) {
 				console_puts(cons, "\x06-- More --\x06");
-				ConsoleGetChar();
+				console_getchar();
 				console_puts(cons, "\n");
 				k = 0;
 			}
@@ -858,7 +858,7 @@ void command_mem(struct CONSOLE *cons, struct ARG arg, int memtotal)
 			if (check_switch(arg.argv[i], "-h", 2)) {
 				sw_h = 1;
 			} else {
-				SwitchError(cons, arg.argv[i]);
+				switch_error(cons, arg.argv[i]);
 				return;
 			}
 		}
@@ -883,7 +883,7 @@ void command_more(struct CONSOLE *cons, int *fat, struct ARG arg)
 			if (check_switch(arg.argv[i], "-f", 2)) {
 				sw_f = 1;
 			} else {
-				SwitchError(cons, arg.argv[i]);
+				switch_error(cons, arg.argv[i]);
 				return;
 			}
 		} else {
@@ -891,7 +891,7 @@ void command_more(struct CONSOLE *cons, int *fat, struct ARG arg)
 		}
 	}
 	if (*filename == 0) {
-		SyntaxError(cons);
+		syntax_error(cons);
 		return;
 	}
 	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
@@ -922,7 +922,7 @@ void command_more(struct CONSOLE *cons, int *fat, struct ARG arg)
 				console_print(cons, "\x06-- More[%02d%%] --\x06", i * 100 / finfo->size);
 				console_puts(cons, "");
 				for (;;) {
-					key = ConsoleGetChar();
+					key = console_getchar();
 					key -= 256;
 					if (key == 'q' || key == 'Q') {
 						console_puts(cons, "\n\n");
@@ -958,11 +958,11 @@ void command_more(struct CONSOLE *cons, int *fat, struct ARG arg)
 
 void command_pause(struct CONSOLE *cons, struct ARG arg)
 {
-	if (WithoutSwitch(cons, arg)) {
+	if (no_switch(cons, arg)) {
 		return;
 	}
 	console_puts(cons, "Press Any Key to Continue...");
-	ConsoleGetChar();
+	console_getchar();
 	console_puts(cons, "\n\n");
 	return;
 }
@@ -970,7 +970,7 @@ void command_pause(struct CONSOLE *cons, struct ARG arg)
 void command_prompt(struct CONSOLE *cons, struct ARG arg)
 {
 	if (arg.argc < 2) {
-		SyntaxError(cons);
+		syntax_error(cons);
 		return;
 	}
 	char pmtch = cons->prompt[cons->pmtlen - 1];
@@ -985,7 +985,7 @@ void command_prompt(struct CONSOLE *cons, struct ARG arg)
 void command_rename(struct CONSOLE *cons, struct ARG arg)
 {
 	if (arg.argc < 3) {
-		SyntaxError(cons);
+		syntax_error(cons);
 		return;
 	}
 	struct FILEINFO *finfo = 
@@ -1038,7 +1038,7 @@ void command_shutdown(struct CONSOLE *cons, struct ARG arg)
 			} else if (check_switch(arg.argv[i], "-w", 2)) {
 				sw_w = strtol(arg.argv[i] + 2, 0, 10);
 			} else {
-				SwitchError(cons, arg.argv[i]);
+				switch_error(cons, arg.argv[i]);
 				return;
 			}
 		}
@@ -1095,7 +1095,7 @@ void command_task(struct CONSOLE *cons, struct ARG arg)
 			} else if (check_switch(arg.argv[i], "-p", 2)) {
 				sw_p = strtol(arg.argv[i] + 2, 0, 10);
 			} else {
-				SwitchError(cons, arg.argv[i]);
+				switch_error(cons, arg.argv[i]);
 				return;
 			}
 		}
@@ -1134,7 +1134,7 @@ void command_task(struct CONSOLE *cons, struct ARG arg)
 		}
 		if (k > CONSOLE_LINE - 2 - 2 && sw_n) {
 			console_puts(cons, "\x06-- More --\x06");
-			ConsoleGetChar();
+			console_getchar();
 			console_puts(cons, "\nSel  Address   Level  Priority\n"
 							     "------------------------------\n");
 			k = 0;
@@ -1153,14 +1153,14 @@ void command_tek(struct CONSOLE *cons, int *fat, struct ARG arg)
 	char filename[12] = {0};
 	for (i = 1; i < arg.argc; i++) {
 		if (arg.argv[i][0] == '-') {
-			SwitchError(cons, arg.argv[i]);
+			switch_error(cons, arg.argv[i]);
 			return;
 		} else {
 			strncpy(filename, arg.argv[i], 12);
 		}
 	}
 	if (*filename == 0) {
-		SyntaxError(cons);
+		syntax_error(cons);
 		return;
 	}
 	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
@@ -1202,7 +1202,7 @@ void command_tek(struct CONSOLE *cons, int *fat, struct ARG arg)
 
 void command_time(struct CONSOLE *cons, struct ARG arg)
 {
-	if (WithoutSwitch(cons, arg)) {
+	if (no_switch(cons, arg)) {
 		return;
 	}
 	static char *weeks[] = {
@@ -1227,7 +1227,7 @@ void command_type(struct CONSOLE *cons, int *fat, struct ARG arg)
 			if (check_switch(arg.argv[i], "-f", 2)) {
 				sw_f = 1;
 			} else {
-				SwitchError(cons, arg.argv[i]);
+				switch_error(cons, arg.argv[i]);
 				return;
 			}
 		} else {
@@ -1235,7 +1235,7 @@ void command_type(struct CONSOLE *cons, int *fat, struct ARG arg)
 		}
 	}
 	if (*filename == 0) {
-		SyntaxError(cons);
+		syntax_error(cons);
 		return;
 	}
 	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
@@ -1270,17 +1270,20 @@ void command_type(struct CONSOLE *cons, int *fat, struct ARG arg)
 
 void command_ver(struct CONSOLE *cons, struct ARG arg, int memtotal)
 {
-	if (WithoutSwitch(cons, arg)) {
-		return;
-	}
-	console_puts(cons, "MLworkshop MitOS\n");
-	console_print(cons, "Version %d.%d.%d.%d\nTotal RAM: %d MiB\n\n", 
-				(OS_VERSION & 0xf000) >> 12,
-				(OS_VERSION & 0x0f00) >>  8,
-				(OS_VERSION & 0x00f0) >>  4,
-				(OS_VERSION & 0x000f) >>  0,
-				memtotal / (1024 * 1024));
-	console_puts(cons, "Copyright (c) MLworkshop, All Rights Reserved.\n\n");
+	// if (no_switch(cons, arg)) {
+	// 	return;
+	// }
+	// console_puts(cons, "MLworkshop MitOS\n");
+	// console_print(cons, "Version %d.%d.%d.%d\nTotal RAM: %d MiB\n\n", 
+	// 			(OS_VERSION & 0xf000) >> 12,
+	// 			(OS_VERSION & 0x0f00) >>  8,
+	// 			(OS_VERSION & 0x00f0) >>  4,
+	// 			(OS_VERSION & 0x000f) >>  0,
+	// 			memtotal / (1024 * 1024));
+	// console_puts(cons, "Copyright (c) MLworkshop, All Rights Reserved.\n\n");
+	unsigned char buf[256] = {0xdd};
+	hd_read_sector(0, 0, 0, buf, 256);
+	console_print(cons, "%02x\n", *buf);
 	return;
 }
 
@@ -1325,7 +1328,7 @@ int console_run_app(struct CONSOLE *cons, int *fat, char *cmdline, int memtotal,
 		if (appsiz >= 36 && strncmp(p + 4, "Mit", 3) == 0 && *p == 0x00) {
 			if (cons->sht != 0) {
 				if (*(p + 7) == 'G') {
-					CommandNcRun(cons, arg, memtotal);
+					command_ncrun(cons, arg, memtotal);
 					goto fin;
 				}
 			}
@@ -1379,7 +1382,7 @@ fin:
 	return 0;
 }
 
-void CommandNcRun(struct CONSOLE *cons, struct ARG arg, int memtotal)
+void command_ncrun(struct CONSOLE *cons, struct ARG arg, int memtotal)
 {
 	int i, j;
 	struct TASK *task = open_console_task(0, memtotal);
@@ -1396,7 +1399,7 @@ void CommandNcRun(struct CONSOLE *cons, struct ARG arg, int memtotal)
 	return;
 }
 
-int ConsoleGetChar(void)
+int console_getchar(void)
 {
 	struct TASK *task = task_getnow();
 	int l;
@@ -1407,11 +1410,11 @@ int ConsoleGetChar(void)
 	return l;
 }
 
-char *ConsoleGetString(struct CONSOLE *cons, char *src)
+char *console_getstring(struct CONSOLE *cons, char *src)
 {
 	int i;
 	for (;;) {
-		i = ConsoleGetChar();
+		i = console_getchar();
 		if (i == 8 + 256) {
 			/* 退格键 */
 			if (cons->cur_x > 8) {
@@ -1438,31 +1441,31 @@ char *ConsoleGetString(struct CONSOLE *cons, char *src)
 	return src;
 }
 
-inline void SyntaxError(struct CONSOLE *cons)
+inline void syntax_error(struct CONSOLE *cons)
 {
 	console_puts(cons, "Command Syntax Error.\n\n");
 	return;
 }
 
-inline void SwitchError(struct CONSOLE *cons, char *sw)
+inline void switch_error(struct CONSOLE *cons, char *sw)
 {
 	console_print(cons, "Invalid Switch: \'%s\'.\n\n", sw);
 	return;
 }
 
-inline int WithoutSwitch(struct CONSOLE *cons, struct ARG arg)
+inline int no_switch(struct CONSOLE *cons, struct ARG arg)
 {
 	int i;
 	for (i = 1; i < arg.argc; i++) {
 		if (arg.argv[i][0] == '-') {
-			SwitchError(cons, arg.argv[i]);
+			switch_error(cons, arg.argv[i]);
 			return 1;
 		}
 	}
 	return 0;
 }
 
-inline void WithoutPermissions(struct CONSOLE *cons)
+inline void no_permissions(struct CONSOLE *cons)
 {
 	console_puts(cons, "Insufficient Permissions.\n\n");
 	return;

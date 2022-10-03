@@ -82,13 +82,13 @@ void fd_setarg()
 */
 static void set_dma(unsigned char *buf, unsigned char cmd)
 {
-	long addr = (long)buf;
+	long addr = (long) buf;
 	io_cli();
 	/* DMA 2 掩码 */
 	io_out8(10, 4 | 2);
 	/* 输出命令字节 */
-	io_out8(12, (char)((cmd == FD_READ) ? DMA_READ : DMA_WRITE));
-	io_out8(11, (char)((cmd == FD_READ) ? DMA_READ : DMA_WRITE));
+	io_out8(12, (char) ((cmd == FD_READ) ? DMA_READ : DMA_WRITE));
+	io_out8(11, (char) ((cmd == FD_READ) ? DMA_READ : DMA_WRITE));
 	/* addr 低 8 位 */
 	io_out8(4, addr);
 	addr >>= 8;
@@ -152,6 +152,6 @@ int fd_io(char command, unsigned int sect, unsigned char *buf)
 	output_byte(2);					/* 扇区大小位 512 */
 	output_byte(floppy_type.sect);	/* 最大扇区 */
 	output_byte(floppy_type.gap);	/* 扇区差 */
-	output_byte(0xFF);				/* 扇区大小 */
+	output_byte(0xff);				/* 扇区大小 */
 	return 0;
 }

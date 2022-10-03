@@ -22,7 +22,11 @@ void io_cli(void);
 void io_sti(void);
 void io_stihlt(void);
 int io_in8(int port);
+int io_in16(int port);
+int io_in32(int port);
 void io_out8(int port, int data);
+void io_out16(int port, int data);
+void io_out32(int port, int data);
 int io_load_eflags(void);
 void io_store_eflags(int eflags);
 void load_gdtr(int limit, int addr);
@@ -540,12 +544,15 @@ unsigned short fat_find_file(unsigned char *fpImg, char *FileName);
 void fat_add_file(unsigned char *fpImg, unsigned char *fp, unsigned int fs, char *DirName, unsigned char attr);
 void fat_delete_file(unsigned char *fpImg, unsigned short entry);
 
-/* drive.c */
+/* floppy.c */
 /* FD_COMMAND 值 */
-#define FD_RECALIBRATE						0x07	/* 移动至磁道 0 */
+#define FD_RECALIBRATE						0x07	/* 重新校正 */
 #define FD_SEEK								0x0F	/* 寻道 */
 #define FD_READ								0xE6	/* 读取 */
 #define FD_WRITE							0xC5	/* 写入 */
 #define FD_SENSEI							0x08	/* 检测中断状态 */
-#define FD_SPECIFY							0x03	/* 指定 HUT 等 */
+#define FD_SPECIFY							0x03	/* 设定驱动器参数 */
 int fd_io(char command, unsigned int sect, unsigned char *buf);
+
+/* hd.c */
+unsigned int hd_read_sector(unsigned long partitionOffset, unsigned long driveNumber, unsigned long lba, unsigned char *data, int limit);

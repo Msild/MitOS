@@ -1,45 +1,62 @@
 /*
-	File: Source/drive/fd.c
+	File: Source/drive/hd.c
 	Copyright: MLworkshop
 	Author: Msild
 */
 
 #include "../MitOS.h"
 
-#define MAX_ERRORS			7	/* 操作扇区时允许的最大出错次数 */
-#define MAX_HD				2	/* 支持的最大硬盘数 */
+#define TIMEOUT 					10000
 
-/* 重新校正处理函数 */
-static void recal_intr(void);
-
-static int recalibrate = 1;		/* 重新校正标志 */
-static int reset = 1;			/* 复位标志 */
-
-/* 硬盘参数及类型定义 */
-struct hd_i_struct {
-	int head, sect, cyl, wpcom, lzone, ctl;
-};
-struct hd_i_struct hd_info[] = { {0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0} };
-static int NR_HD = 0;
-
-/* 定义硬盘分区结构 */
-static struct hd_struct {
-	long start_sect;			/* 分区在硬盘中的物理扇区 */
-	long nr_sects;				/* 分区中的扇区总数 */
-} hd[5 * MAX_HD] = { {0, 0} };
-
-static void port_read(unsigned int port, unsigned char *buf, unsigned int nr)
+unsigned int hd_read_sector(unsigned long partOffset, unsigned long driveNo, unsigned long lba, unsigned char *buf, int size)
 {
-	// asm("cld\n\t"
-	// 	"cmp %%ecx, 0\n\t"
-	// 	"jle .exit"
-	// 	"insw"
-	// 	"dec %%ecx"
-	// 	".exit:"
-	// 	:
-	// 	: "d"(port), "D"(buf), "c"(nr)
-	// );
-}
+	lba += partOffset;
 
-#define port_write(port,buf,nr) \
-asm("cld;rep;outsw"::"d" (port),"S" (buf),"c" (nr):"cx","si")
+	unsigned int numberOfSector;
+	if (size == 0) {
+		return 0;
+	} else if (size < 512) {
+		numberOfSector = 1;
+	} else {
+		numberOfSector = (size % 512 == 0) ? size / 512 : (size / 512) + 1;
+	}
+
+	io_out8(0x01f2, numberOfSector);
+	io_out8(0x01f3, lba);
+	io_out8(0x01f4, lba >> 8);
+	io_out8(0x01f5, (lba >> 16) & 0xff);
+	io_out8(0x01f6, 0xe0 | (driveNo << 4));
+	io_out8(0x01f7, 0x20);
+
+	unsigned char status = 0;
+	int timeout = TIMEOUT;
+	do {
+		status = io_in8(0x01f7);
+		if (timeout-- == 0) {
+			return 0;
+		}
+	} while ((status & 0x8) != 0x8);
+
+	unsigned short i;
+	for (i = 0; i < numberOfSector * 512; i += 2) {
+		if (i >= size && size != -1) {
+			break;
+		} else {
+			short inChar = io_in16(0x01f0);
+			char first = inChar & 0xff;
+			char second = inChar >> 8;
+			if (i < size || size == -1) {
+				buf[i] = first;
+			}
+			if (i + 1 < size || size == -1) {
+				buf[i + 1] = second;
+			}
+		}
+	}
+
+	if (size != -1) {
+		return size;
+	} else {
+		return numberOfSector * 512;
+	}
+}
