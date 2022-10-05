@@ -398,8 +398,6 @@ void console_run(struct ARG arg, char *cmdline,
 		command_shutdown(cons, arg);
 	} else if (check_command(arg, "task")) {
 		command_task(cons, arg);
-	} else if (check_command(arg, "tek")) {
-		command_tek(cons, fat, arg);
 	} else if (check_command(arg, "time")) {
 		command_time(cons, arg);
 	} else if (check_command(arg, "type")) {

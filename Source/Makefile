@@ -13,7 +13,7 @@ OBJS_INT     = int/error.obj int/int.obj int/keyboard.obj int/mouse.obj \
                int/timer.obj
 OBJS_METHOD  = method/alloca.obj method/asmfunc.obj method/crc32.obj \
                method/dsctbl.obj method/fifo.obj method/memory.obj \
-               method/mtask.obj method/time.obj method/res.obj method/tek.obj
+               method/mtask.obj method/time.obj
 OBJS_UI      = ui/ascii.obj ui/graphic.obj ui/jpeg.obj ui/mchar.obj \
                ui/sheet.obj ui/taskbar.obj ui/window.obj ui/bmp.obj
 OBJS         = $(OBJS_MAIN) $(OBJS_CONSOLE) $(OBJS_DRIVE) $(OBJS_FS) \
@@ -26,7 +26,6 @@ MKBIM     = $(BUILDPATH)mkbim.exe
 MKMIT     = $(BUILDPATH)mkmit.exe
 EDIMG     = $(BUILDPATH)edimg.exe
 IMGTOL    = $(BUILDPATH)imgtol.com
-GOLIB     = $(BUILDPATH)golib00.exe
 RULEFILE  = kernel.rul
 ATTRIB    = attrib
 COPY      = copy

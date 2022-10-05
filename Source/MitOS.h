@@ -193,7 +193,6 @@ void *krealloc(struct MEMMAN *man, void *p, unsigned int size);
 #define MAX_SHEETS							256
 #define SHT_FLAG_CONSOLE					10
 #define SHT_FLAG_APPWIN						20
-#define SHT_FLAG_MENU						30
 struct SHEET {
 	unsigned char *buf;
 	int bxsize, bysize, vx0, vy0, col_inv, height, flags;
@@ -344,14 +343,9 @@ struct FILEINFO {
 void file_read_fat(int *fat, unsigned char *img);
 void file_load(int clustno, int size, char *buf, int *fat, char *img);
 struct FILEINFO *file_search(char *name, struct FILEINFO *finfo, int max);
-char *file_load_tek(int clustno, int *psize, int *fat);
 int kfgetc(struct HFILE *file);
 char *kfgets(struct HFILE *file, char *str, int n);
 int kfseek(struct HFILE *file, int offset, int mode);
-
-/* tek.c */
-int tek_getsize(unsigned char *p);
-int tek_decomp(unsigned char *p, char *q, int size);
 
 /* main.c */
 #define OS_VERSION							0x1000
@@ -449,7 +443,6 @@ void command_rename(struct CONSOLE *cons, struct ARG arg);
 void command_run(struct CONSOLE *cons, struct ARG arg, int memtotal);
 void command_task(struct CONSOLE *cons, struct ARG arg);
 void command_shutdown(struct CONSOLE *cons, struct ARG arg);
-void command_tek(struct CONSOLE *cons, int *fat, struct ARG arg);
 void command_time(struct CONSOLE *cons, struct ARG arg);
 void command_type(struct CONSOLE *cons, int *fat, struct ARG arg);
 void command_ver(struct CONSOLE *cons, struct ARG arg, int memtotal);
@@ -506,11 +499,6 @@ void set_day_of_week(unsigned int day_of_week);
 void set_month(unsigned int mon_hex);
 void set_year(unsigned int year);
 unsigned long kmktime(int year0, int mon0, int day, int hour, int min, int sec);
-
-/* res.c */
-extern unsigned int *resszie;
-int res_info(int *info, int size, unsigned char *fp);
-char *res_decode(int *info, int size, unsigned char *fp, char *id, int *rsize);
 
 /* crc32.c */
 unsigned int get_crc32(const unsigned char *buf, unsigned int size);

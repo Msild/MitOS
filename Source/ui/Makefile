@@ -11,11 +11,11 @@ INCPATH   = ../include/
 
 MAKE      = $(BUILDPATH)make.exe -r
 NASK      = $(BUILDPATH)nask.exe
-NASM       = $(BUILDPATH)nasm.exe -fcoff
+NASM      = $(BUILDPATH)nasm.exe -fcoff
 MCC       = $(BUILDPATH)mcc.exe -I$(INCPATH) -Os -Wall -quiet
-GAS2NASK  = $(BUILDPATH)gas2nask.exe -a
-MAKEFONT  = $(BUILDPATH)makefont.exe
-BIN2OBJ   = $(BUILDPATH)bin2obj.exe
+CONVNAS   = $(BUILDPATH)convnas.exe -a
+MKFON     = $(BUILDPATH)mkfon.exe
+MKOBJ     = $(BUILDPATH)mkobj.exe
 ATTRIB    = attrib
 COPY      = copy
 DEL       = del
@@ -31,16 +31,16 @@ default :
 # 文件生成规则
 
 ascii.bin : ascii.txt Makefile
-	$(MAKEFONT) ascii.txt ascii.bin
+	$(MKFON) ascii.txt ascii.bin
 
 ascii.obj : ascii.bin Makefile
-	$(BIN2OBJ) ascii.bin ascii.obj _ascii
+	$(MKOBJ) ascii.bin ascii.obj _ascii
 	
 mchar.bin : mchar.txt Makefile
-	$(MAKEFONT) mchar.txt mchar.bin
+	$(MKFON) mchar.txt mchar.bin
 
 mchar.obj : mchar.bin Makefile
-	$(BIN2OBJ) mchar.bin mchar.obj _mchar
+	$(MKOBJ) mchar.bin mchar.obj _mchar
 
 # 一般规则
 
@@ -48,7 +48,7 @@ mchar.obj : mchar.bin Makefile
 	$(MCC) -o $*.gas $*.c
 
 %.nas : %.gas Makefile
-	$(GAS2NASK) $*.gas $*.nas
+	$(CONVNAS) $*.gas $*.nas
 
 %.obj : %.nas Makefile
 	$(NASK) $*.nas $*.obj $*.lst

@@ -174,9 +174,12 @@ int *mitapi(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int e
 								(ADR_DISKIMG + 0x002600), 224);
 			if (finfo != 0) {
 				reg[7] = (int) fh;
+				fh->buf = (unsigned char *) 
+					memman_alloc_4k(memman, finfo->size);
 				fh->size = finfo->size;
 				fh->pos = 0;
-				fh->buf = file_load_tek(finfo->clustno, &fh->size, task->fat);
+				file_load(finfo->clustno, finfo->size, fh->buf, task->fat, 
+					(unsigned char *) (ADR_DISKIMG + 0x003e00));
 			}
 		}
 	} else if (edx == 22) {
@@ -334,11 +337,11 @@ int *mitapi(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int e
 		sht = (struct SHEET *) eax;
 		sheet_move(sht, ebx, ecx);
 	} else if (edx == 38) {
-		sht = (struct SHEET *) (ebx & 0xfffffffe);
-		vram_draw_icon(sht->buf, sht->bxsize, esi, edi, eax);
-		if ((ebx & 1) == 0) {
-			sheet_refresh(sht, esi, edi, esi + 16, edi + 16);
-		}
+		// sht = (struct SHEET *) (ebx & 0xfffffffe);
+		// vram_draw_icon(sht->buf, sht->bxsize, esi, edi, eax);
+		// if ((ebx & 1) == 0) {
+		// 	sheet_refresh(sht, esi, edi, esi + 16, edi + 16);
+		// }
 	} else if (edx == 39) {
 		sht = (struct SHEET *) eax;
 		switch (ecx) {
@@ -394,19 +397,19 @@ int *mitapi(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int e
 	} else if (edx == 45) {
 		kernel_reboot();
 	} else if (edx == 46) {
-		unsigned char *icon = NULL;
-		i = tbitemctl_getsheet((struct SHEET *) ecx);
-		if (i != -1) {
-			if (ebx != 0) {
-				icon = (unsigned char *) ebx + ds_base;
-			} else {
-				int info[2], size;
-				if (res_info(info, *resszie, (char *) *((int *) 0x0fe8))) {
-					icon = res_decode(info, *resszie, (char *) *((int *) 0x0fe8), "ICO00006", &size);
-				}
-			}
-			tbitemctl->item[i].icon = icon;
-		}
+		// unsigned char *icon = NULL;
+		// i = tbitemctl_getsheet((struct SHEET *) ecx);
+		// if (i != -1) {
+		// 	if (ebx != 0) {
+		// 		icon = (unsigned char *) ebx + ds_base;
+		// 	} else {
+		// 		int info[2], size;
+		// 		if (res_info(info, *resszie, (char *) *((int *) 0x0fe8))) {
+		// 			icon = res_decode(info, *resszie, (char *) *((int *) 0x0fe8), "ICO00006", &size);
+		// 		}
+		// 	}
+		// 	tbitemctl->item[i].icon = icon;
+		// }
 	}
 	return 0;
 }

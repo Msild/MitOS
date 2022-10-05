@@ -255,7 +255,7 @@ void vram_draw_block(char *vram, int vxsize, int pxsize, int pysize,
 
 int load_picture(char *filename, int *fat, char *vram, int bx, int x, int y, int mode)
 {
-	int i, j, x0 = 0, y0 = 0, fsize, info[8];
+	int i, j, x0 = 0, y0 = 0, info[8];
 	unsigned char *filebuf, r, g, b;
 	struct RGB *picbuf;
 	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
@@ -266,9 +266,11 @@ int load_picture(char *filename, int *fat, char *vram, int bx, int x, int y, int
 	if (finfo == 0) {
 		return 1;
 	}
-	fsize = finfo->size;
+
+	unsigned int fsize = finfo->size;
 	filebuf = (unsigned char *) memman_alloc_4k(memman, fsize);
-	filebuf = file_load_tek(finfo->clustno, &fsize, fat);
+	file_load(finfo->clustno, fsize, filebuf, fat, 
+		(unsigned char *) (ADR_DISKIMG + 0x003e00));
 	env = (struct DLL_STRPICENV *) 
 		memman_alloc_4k(memman, sizeof(struct DLL_STRPICENV));
 	if (info_JPEG(env, info, fsize, filebuf) == 0) {
@@ -320,30 +322,30 @@ unsigned char rgb2pal(int r, int g, int b, int x, int y)
 
 void vram_draw_icon(char *vram, int bxsize, int x, int y, int id)
 {
-	if (*resszie != 0) {
-		int info[2];
-		if (res_info(info, *resszie, (char *) *((int *) 0x0fe8)) == 0) {
-			return;
-		}
-		char s[16], *icon = NULL;
-		int ix, iy, size;
-		sprintf(s, "ICO%05X", id);
-		icon = res_decode(info, *resszie, (char *) *((int *) 0x0fe8), s, &size);
-		char ixy;
-		for (ix = 0; ix < 16; ix++) {
-			for (iy = 0; iy < 16; iy++) {
-				ixy = icon[ix + 16 * iy];
-				if (ixy >= 0x20) ixy = -1;
-				if (ixy != -1) vram[bxsize * (y + iy) + (x + ix)] = ixy;
-			}
-		}
-	}
-	return;
+	// if (*resszie != 0) {
+	// 	int info[2];
+	// 	if (res_info(info, *resszie, (char *) *((int *) 0x0fe8)) == 0) {
+	// 		return;
+	// 	}
+	// 	char s[16], *icon = NULL;
+	// 	int ix, iy, size;
+	// 	sprintf(s, "ICO%05X", id);
+	// 	icon = res_decode(info, *resszie, (char *) *((int *) 0x0fe8), s, &size);
+	// 	char ixy;
+	// 	for (ix = 0; ix < 16; ix++) {
+	// 		for (iy = 0; iy < 16; iy++) {
+	// 			ixy = icon[ix + 16 * iy];
+	// 			if (ixy >= 0x20) ixy = -1;
+	// 			if (ixy != -1) vram[bxsize * (y + iy) + (x + ix)] = ixy;
+	// 		}
+	// 	}
+	// }
+	// return;
 }
 
 void vram_draw_menuitem(unsigned char *buf, int bxsize, int x, int y, int id, char *ds)
 {
-	vram_draw_icon(buf, bxsize, x, y, id);
-	varm_draw_mstring(buf, bxsize, x + 20, y + 4, COL8_000000, ds);
-	return;
+	// vram_draw_icon(buf, bxsize, x, y, id);
+	// varm_draw_mstring(buf, bxsize, x + 20, y + 4, COL8_000000, ds);
+	// return;
 }

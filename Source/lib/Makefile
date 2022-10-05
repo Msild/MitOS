@@ -11,10 +11,10 @@ INCPATH   = ../include/
 
 MAKE      = $(BUILDPATH)make.exe -r
 NASK      = $(BUILDPATH)nask.exe
-NASM       = $(BUILDPATH)nasm.exe -fcoff
+NASM      = $(BUILDPATH)nasm.exe -fcoff
 MCC       = $(BUILDPATH)mcc.exe -I$(INCPATH) -I../ -Os -Wall -quiet
-GAS2NASK  = $(BUILDPATH)gas2nask.exe -a
-GOLIB     = $(BUILDPATH)golib00.exe
+CONVNAS   = $(BUILDPATH)convnas.exe -a
+LIBCT     = $(BUILDPATH)libct.exe
 COPY      = copy
 DEL       = del
 
@@ -33,7 +33,7 @@ default :
 # 文件生成规则
 		
 $(TARGET) : Makefile $(OBJS)
-	$(GOLIB) $(OBJS) out:$(TARGET)
+	$(LIBCT) $(OBJS) out:$(TARGET)
 
 # 一般规则
 
@@ -41,7 +41,7 @@ $(TARGET) : Makefile $(OBJS)
 	$(MCC) -o $*.gas $*.c
 
 %.nas : %.gas Makefile
-	$(GAS2NASK) $*.gas $*.nas
+	$(CONVNAS) $*.gas $*.nas
 
 %.obj : %.nas Makefile
 	$(NASK) $*.nas $*.obj $*.lst

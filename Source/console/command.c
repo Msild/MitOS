@@ -154,12 +154,6 @@ static char help_text_task[] = {
 	" -P     The priority of the task to be set.\n"
 };
 
-static char help_text_tek[] = {
-	"Parse Tek compressed file and display its size.\n"
-	"Usage : TEK <NAME>\n"
-	" NAME   File name.\n"
-};
-
 static char help_text_time[] = {
 	"Display the system date and time.\n"
 	"Usage : TIME\n"
@@ -499,12 +493,13 @@ void command_crc32(struct CONSOLE *cons, int *fat, struct ARG arg)
 	struct FILEINFO *finfo = file_search(filename, 
 		(struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
 	unsigned char *p;
-	int size;
 	if (finfo != 0) {
 		/* 找到文件 */
-		p = file_load_tek(finfo->clustno, &size, fat);
-		console_print(cons, "CRC32: %X\n", get_crc32(p, size));
-		memman_free_4k(memman, (int) p, size);
+		p = (unsigned char *) memman_alloc_4k(memman, finfo->size);
+		file_load(finfo->clustno, finfo->size, p, fat, 
+			(unsigned char *) (ADR_DISKIMG + 0x003e00));
+		console_print(cons, "CRC32: %X\n", get_crc32(p, finfo->size));
+		memman_free_4k(memman, (int) p, finfo->size);
 	} else {
 		/* 未找到文件 */
 		console_puts(cons, "File Not Found.\n");
@@ -742,12 +737,11 @@ void command_help(struct CONSOLE *cons, struct ARG arg)
 			"RUN       Run A Program.              \n",
 			"SHUTDOWN  Shut Down Or Reboot.        \n",
 			"TASK      Display Or Set The Tasks.   \n",
-			"TEK       Parse Tek Compressed Files. \n",
 			"TIME      Display System Time.        \n",
 			"TYPE      Display Text File.          \n",
 			"VER       Display OS Version.         \n"
 		};
-		for (i = 0; i < 25; i++) {
+		for (i = 0; i < 24; i++) {
 			if (k > CONSOLE_LINE - 2 && sw_n) {
 				console_puts(cons, "\x06-- More --\x06");
 				console_getchar();
@@ -800,8 +794,6 @@ void command_help(struct CONSOLE *cons, struct ARG arg)
 			console_puts(cons, help_text_shutdown);
 		} else if (strcmp(strlwr(arg.argv[1]), "task") == 0) {
 			console_puts(cons, help_text_task);
-		} else if (strcmp(strlwr(arg.argv[1]), "tek") == 0) {
-			console_puts(cons, help_text_tek);
 		} else if (strcmp(strlwr(arg.argv[1]), "time") == 0) {
 			console_puts(cons, help_text_time);
 		} else if (strcmp(strlwr(arg.argv[1]), "type") == 0) {
@@ -1147,59 +1139,6 @@ void command_task(struct CONSOLE *cons, struct ARG arg)
 	return;
 }
 
-void command_tek(struct CONSOLE *cons, int *fat, struct ARG arg)
-{
-	int i;
-	char filename[12] = {0};
-	for (i = 1; i < arg.argc; i++) {
-		if (arg.argv[i][0] == '-') {
-			switch_error(cons, arg.argv[i]);
-			return;
-		} else {
-			strncpy(filename, arg.argv[i], 12);
-		}
-	}
-	if (*filename == 0) {
-		syntax_error(cons);
-		return;
-	}
-	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
-	struct FILEINFO *finfo = file_search(filename, 
-		(struct FILEINFO *) (ADR_DISKIMG + 0x002600), 224);
-	unsigned char *p;
-	int tek_size;
-	if (finfo != 0) {
-		/* 找到文件 */
-		p = (unsigned char *) memman_alloc_4k(memman, finfo->size);
-		file_load(finfo->clustno, finfo->size, p, fat, (char *) (ADR_DISKIMG + 0x003e00));
-		tek_size = tek_getsize(p);
-		if (tek_size == -1) {
-			console_puts(cons, "Unknown Type.\n");
-		} else {
-			console_puts(cons, "Format: ");
-			if (*p == 0x83) {
-				console_puts(cons, "Tek-1\n");
-			} else if (*p == 0x85) {
-				console_puts(cons, "Tek-2\n");
-			} else if (*p == 0x89) {
-				console_puts(cons, "Tek-5\n");
-			} else {
-				console_puts(cons, "Unknown\n");
-			}
-			console_print(cons, "File Size: %7d Bytes\n", finfo->size);
-			console_print(cons, "Utek Size: %7d Bytes\n", tek_size);
-			console_print(cons, "Compression Rate: %d%%\n", 
-						finfo->size * 100 / tek_size);
-		}
-		memman_free_4k(memman, (int) p, finfo->size);
-	} else {
-		/* 未找到文件 */
-		console_puts(cons, "File Not Found.\n");
-	}
-	console_newline(cons);
-	return;
-}
-
 void command_time(struct CONSOLE *cons, struct ARG arg)
 {
 	if (no_switch(cons, arg)) {
@@ -1324,14 +1263,18 @@ int console_run_app(struct CONSOLE *cons, int *fat, char *cmdline, int memtotal,
 	if (finfo != 0) {
 		/* 找到文件 */
 		appsiz = finfo->size;
-		p = file_load_tek(finfo->clustno, &appsiz, fat);
-		if (appsiz >= 36 && strncmp(p + 4, "Mit", 3) == 0 && *p == 0x00) {
-			if (cons->sht != 0) {
-				if (*(p + 7) == 'G') {
-					command_ncrun(cons, arg, memtotal);
-					goto fin;
+		p = (unsigned char *) memman_alloc_4k(memman, appsiz);
+		file_load(finfo->clustno, appsiz, p, fat, 
+			(unsigned char *) (ADR_DISKIMG + 0x003e00));
+		if (appsiz >= 36 && strncmp(p + 4, "MitC", 4) == 0 && *p == 0x00) {
+			/*
+				if (cons->sht != 0) {
+					if (*(p + 7) == 'G') {
+						command_ncrun(cons, arg, memtotal);
+						goto fin;
+					}
 				}
-			}
+			*/
 			segsiz = *((int *) (p + 0x0000));
 			esp    = *((int *) (p + 0x000c));
 			datsiz = *((int *) (p + 0x0010));
@@ -1352,10 +1295,10 @@ int console_run_app(struct CONSOLE *cons, int *fat, char *cmdline, int memtotal,
 				if (sht->flags == SHT_FLAG_APPWIN && sht->task == task) {
 					/* 找到未关闭的图层 */
 					tbitemctl_remove(sht);
-					sheet_free(sht);	/* 关闭 */
+					sheet_free(sht); /* 关闭 */
 				}
 			}
-			for (i = 0; i < 8; i++) {	/* 找到未关闭的文件 */
+			for (i = 0; i < 8; i++) { /* 找到未关闭的文件 */
 				if (task->fhandle[i].buf != 0) {
 					memman_free_4k(memman, (int) task->fhandle[i].buf, 
 								   task->fhandle[i].size);
@@ -1373,7 +1316,7 @@ int console_run_app(struct CONSOLE *cons, int *fat, char *cmdline, int memtotal,
 				console_puts(cons, "Select A Program To Open The File.\n");
 			}
 		}
-fin:
+/* fin: */
 		memman_free_4k(memman, (int) p, appsiz);
 		console_newline(cons);
 		return 1;

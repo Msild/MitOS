@@ -11,9 +11,9 @@ INCPATH   = ../include/
 
 MAKE      = $(BUILDPATH)make.exe -r
 NASK      = $(BUILDPATH)nask.exe
-NASM       = $(BUILDPATH)nasm.exe -fcoff
+NASM      = $(BUILDPATH)nasm.exe -fcoff
 MCC       = $(BUILDPATH)mcc.exe -I$(INCPATH) -Os -Wall -quiet
-GAS2NASK  = $(BUILDPATH)gas2nask.exe -a
+CONVNAS   = $(BUILDPATH)convnas.exe -a
 ATTRIB    = attrib
 COPY      = copy
 DEL       = del
@@ -30,7 +30,7 @@ default :
 	$(MCC) -o $*.gas $*.c
 
 %.nas : %.gas Makefile
-	$(GAS2NASK) $*.gas $*.nas
+	$(CONVNAS) $*.gas $*.nas
 
 %.obj : %.nas Makefile
 	$(NASK) $*.nas $*.obj $*.lst
