@@ -10,10 +10,10 @@
 struct BOOTINFO {	/* 0x0ff0-0x0fff */
 	char cyls;	/* 读取扇区数 */
 	char leds;	/* LED状态 */
-	char vmode;	/* 显卡颜色位数 */
-	char reserve;
-	short scrnx, scrny;	/* 屏幕分辨率 */
-	char *vram;
+	unsigned char vmode;	/* 显卡颜色位数 */
+	unsigned char reserve;
+	unsigned short scrnx, scrny;	/* 屏幕分辨率 */
+	unsigned char *vram;
 };
 
 /* asmfunc.nas */

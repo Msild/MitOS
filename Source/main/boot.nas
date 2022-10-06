@@ -9,15 +9,24 @@
 
 [INSTRSET "i486p"]
 
-VBEMODE	EQU		0x100			; 640*400 8位彩色
-; 画面模式阅览
-;	0x100 :   640*400 8位彩色
-;	0x101 :   640*480 8位彩色
-;	0x103 :   800*600 8位彩色
-;	0x105 :  1024*768 8位彩色
-;	0x107 : 1280*1024 8位彩色
+VBEMODE	EQU		0x112
 
-BOTPAK	EQU		0x00280000		; bootpack加载目标
+;  画面模式号    画面分辨率    画面颜色数
+;	0x100		640*400			8
+;	0x101		640*480			8
+;	0x102		640*480			16
+;	0x103		800*600			8
+;	0x104		1024*768		16
+;	0x105		1024*768		8
+;	0x106		1280*1024		16
+;	0x107		1280*1024		8
+;	0x10f		320*200			24
+;	0x112		640*480			24
+;	0x115		800*600			24
+;	0x118		1024*768		24
+;	0x11b		1280*1024		24
+
+MAIN	EQU		0x00280000		; main 加载目标
 DSKCAC	EQU		0x00100000		; 磁盘缓存地址
 DSKCAC0	EQU		0x00008000		; 磁盘缓存地址（实时模式）
 
@@ -52,47 +61,59 @@ msg:
 		DB		0x0a			; 换行
 		DB		0
 
+; 清屏
+
+clear:
+		MOV		AH,0x06
+		MOV		AL,0x00
+		MOV		CH,0x00
+		MOV		CL,0x00
+		MOV		DH,0x00
+		MOV		DL,0x00
+		MOV		BH,0x07
+		INT		0x10
+
 ; 确认VBE存在
 
 scrnVBE:
-		MOV		AX,0x9000
+		XOR		AX,AX
+		MOV		DS,AX
 		MOV		ES,AX
-		MOV		DI,0
-		MOV		AX,0x4f00
+		MOV		DI,0x0800
+		MOV		AX,0x4f00		; 使用 VBE 标准
 		INT		0x10
-		CMP		AX,0x004f
+		CMP		AX,0x004f		; AX=0x004f 表示 VBE 存在
 		JNE		scrn320
-
-; 检查VBE版本
-
-		MOV		AX,[ES:DI+4]
-		CMP		AX,0x0200
-		JB		scrn320			; if (AX < 0x0200) goto scrn320
+		MOV		AX,[ES:DI+4]	; 检查 VBE 版本
+		CMP		AX,0x0200		; VBE 版本需在 2.0 及以上
+		JB		scrn320
 
 ; 获取画面模式信息
 
 		MOV		CX,VBEMODE
 		MOV		AX,0x4f01
 		INT		0x10
-		CMP		AX,0x004f
+		CMP		AL,0x004f		; 是否支持此画面模式
 		JNE		scrn320
 
-; 画面模式信息确认
+; 画面模式确认
 
-		CMP		BYTE [ES:DI+0x19],8
-		JNE		scrn320
-		CMP		BYTE [ES:DI+0x1b],4
-		JNE		scrn320
+		; CMP		BYTE [ES:DI+0x19],8
+		; JNE		scrn320
+		; CMP		BYTE [ES:DI+0x1b],4
+		; JNE		scrn320
 		MOV		AX,[ES:DI+0x00]
 		AND		AX,0x0080
-		JZ		scrn320			; 模式属性bit7为0，放弃
+		JZ		scrn320			; 模式属性 bit7 为 0，放弃
 
 ; 画面模式切换
 
 		MOV		BX,VBEMODE+0x4000
 		MOV		AX,0x4f02
 		INT		0x10
-		MOV		BYTE [VMODE],8	; 记录画面模式
+
+; 记录画面模式
+		MOV		BYTE [VMODE],8
 		MOV		AX,[ES:DI+0x12]
 		MOV		[SCRNX],AX
 		MOV		AX,[ES:DI+0x14]
@@ -110,24 +131,24 @@ scrn320:
 		MOV		WORD [SCRNY],200
 		MOV		DWORD [VRAM],0x000a0000
 
-; 通过BIOS获取键盘LED状态
+; 通过 BIOS 获取键盘 LED 状态
 
 keystatus:
 		MOV		AH,0x02
 		INT		0x16 			; keyboard BIOS
 		MOV		[LEDS],AL
 
-; PIC关闭一切中断
-; 进行PIC初始化后CLI
+; PIC 关闭一切中断
+; 进行 PIC 初始化后 CLI
 
 		MOV		AL,0xff
 		OUT		0x21,AL
-		NOP						; 暂停CPU
+		NOP						; 暂停 CPU
 		OUT		0xa1,AL
 
-		CLI						; 禁止CPU级别中断
+		CLI						; 禁止 CPU 级别中断
 
-; 让CPU访问1MB以上的内存空间，设定A20GATE
+; 让 CPU 访问 1MiB 以上的内存空间，设定 A20GATE
 
 		CALL	waitkbdout
 		MOV		AL,0xd1
@@ -139,10 +160,10 @@ keystatus:
 
 ; 切换到保护模式
 
-		LGDT	[GDTR0]			; 设置临时GDT
+		LGDT	[GDTR0]			; 设置临时 GDT
 		MOV		EAX,CR0
-		AND		EAX,0x7fffffff	; 设bit31为0，禁止分页
-		OR		EAX,0x00000001	; 设bit0为1，切换到保护模式
+		AND		EAX,0x7fffffff	; 设 bit31 为 0，禁止分页
+		OR		EAX,0x00000001	; 设 bit0 为 1，切换到保护模式
 		MOV		CR0,EAX
 		JMP		pipelineflush
 pipelineflush:
@@ -153,10 +174,10 @@ pipelineflush:
 		MOV		GS,AX
 		MOV		SS,AX
 
-; bootpack的传送
+; main 的传送
 
-		MOV		ESI,bootpack	; 传送源
-		MOV		EDI,BOTPAK		; 传送目的地
+		MOV		ESI,main	; 传送源
+		MOV		EDI,MAIN		; 传送目的地
 		MOV		ECX,512*1024/4
 		CALL	memcpy
 
@@ -176,14 +197,14 @@ pipelineflush:
 		MOV		ECX,0
 		MOV		CL,BYTE [CYLS]
 		IMUL	ECX,512*18*2/4	; 柱面到字节 / 4
-		SUB		ECX,512/4		; 减去IPL
+		SUB		ECX,512/4		; 减去 IPL
 		CALL	memcpy
 
-; asmhead完毕，剩余由bootpack完成
+; asmhead 完毕，剩余由 main 完成
 
-; bootpack启动
+; main 启动
 
-		MOV		EBX,BOTPAK
+		MOV		EBX,MAIN
 		MOV		ECX,[EBX+16]
 		ADD		ECX,3			; ECX += 3;
 		SHR		ECX,2			; ECX /= 4;
@@ -200,7 +221,7 @@ waitkbdout:
 		IN		 AL,0x64
 		AND		 AL,0x02
 		IN		 AL,0x60 		; 空读
-		JNZ		waitkbdout		; AND非0，跳转至waitkbdout
+		JNZ		waitkbdout		; AND 非 0，跳转至 waitkbdout
 		RET
 
 memcpy:
@@ -209,7 +230,7 @@ memcpy:
 		MOV		[EDI],EAX
 		ADD		EDI,4
 		SUB		ECX,1
-		JNZ		memcpy			; SUB非0，跳转至memcpy
+		JNZ		memcpy			; SUB 非 0，跳转至 memcpy
 		RET
 
 		ALIGNB	16
@@ -224,4 +245,4 @@ GDTR0:
 		DD		GDT0
 
 		ALIGNB	16
-bootpack:
+main:

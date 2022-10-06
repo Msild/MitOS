@@ -68,6 +68,9 @@ void fd_reset()
 	io_sti();
 }
 
+/*
+	@brief 设定驱动器参数。
+*/
 void fd_setarg()
 {
 	output_byte(FD_SPECIFY);

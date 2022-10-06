@@ -15,6 +15,14 @@ struct SHEET *key_win;
 void close_console(struct SHEET *sht);
 void close_constask(struct TASK *task);
 
+unsigned int GetCustomColor(unsigned int nColor)
+{
+	int blue = nColor & 255;
+	int green = nColor >> 8 & 255;
+	int red = nColor >> 16 & 255;
+	return (unsigned int)(blue << 16 | green << 8 | red);
+}
+
 void Main(void)
 {
 	struct BOOTINFO *binfo = (struct BOOTINFO *) ADR_BOOTINFO;
@@ -71,7 +79,13 @@ void Main(void)
 	memman_free(memman, 0x00001000, 0x0009e000); /* 0x00001000 - 0x0009efff */
 	memman_free(memman, 0x00400000, memtotal - 0x00400000);
 
-	palette_init();
+	// palette_init();
+	#define COLOR(r, g, b)	(unsigned int) (((unsigned char) r) + \
+											((unsigned char) g) * 256 + \
+											((unsigned char) b) * 256 * 255) * 256
+	for (i = 0; i < binfo->scrnx * binfo->scrny * 4; i += 3) {
+		*((unsigned int *) (binfo->vram + i)) = GetCustomColor(0xff41F1E5);
+	}  while (1);
 	shtctl = shtctl_init(memman, binfo->vram, binfo->scrnx, binfo->scrny);
 	task_main = task_init(memman);
 	fifo.task = task_main;
