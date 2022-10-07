@@ -5,13 +5,12 @@
 */
 
 /* boot.nas */
-#define ADR_BOOTINFO	0x00000ff0	/* 启动信息地址 */
-#define ADR_DISKIMG		0x00100000	/* 磁盘内容地址 */
-struct BOOTINFO {	/* 0x0ff0-0x0fff */
-	char cyls;	/* 读取扇区数 */
-	char leds;	/* LED状态 */
-	unsigned char vmode;	/* 显卡颜色位数 */
-	unsigned char reserve;
+#define ADR_BOOTINFO				0x00000ff0	/* 启动信息地址 */
+#define ADR_DISKIMG					0x00100000	/* 磁盘内容地址 */
+struct BOOTINFO { /* 0x0ff0-0x0fff */
+	char cyls;						/* 读取扇区数 */
+	char leds;						/* LED状态 */
+	unsigned char vmode;			/* 显卡颜色位数 */
 	unsigned short scrnx, scrny;	/* 屏幕分辨率 */
 	unsigned char *vram;
 };
@@ -77,38 +76,46 @@ int fifo_pop(struct FIFO *fifo);
 int fifo_status(struct FIFO *fifo);
 
 /* graphic.c */
-#define COL8_000000							0x00
-#define COL8_0000AA							0x01
-#define COL8_00AA00							0x02
-#define COL8_00AAAA							0x03
-#define COL8_AA0000							0x04
-#define COL8_AA00AA							0x05
-#define COL8_55AA00							0x06
-#define COL8_AAAAAA							0x07
-#define COL8_555555							0x08
-#define COL8_5555FF							0x09
-#define COL8_55FF55							0x0a
-#define COL8_55FFFF							0x0b
-#define COL8_FF5555							0x0c
-#define COL8_FF55FF							0x0d
-#define COL8_FFFF55							0x0e
-#define COL8_FFFFFF							0x0f
-void palette_init(void);
-void palette_set(int start, int end, unsigned char *rgb);
-void varm_fill_rectangle(unsigned char *vram, int xsize, unsigned char c, 
+#define COL8_000000							0x00000000
+#define COL8_0000AA							0x000000aa
+#define COL8_00AA00							0x0000aa00
+#define COL8_00AAAA							0x0000aaaa
+#define COL8_AA0000							0x00aa0000
+#define COL8_AA00AA							0x00aa00aa
+#define COL8_55AA00							0x0055aa00
+#define COL8_AAAAAA							0x00aaaaaa
+#define COL8_555555							0x00555555
+#define COL8_5555FF							0x005555ff
+#define COL8_55FF55							0x0055ff55
+#define COL8_55FFFF							0x0055ffff
+#define COL8_FF5555							0x00ff5555
+#define COL8_FF55FF							0x00ff55ff
+#define COL8_FFFF55							0x00ffff55
+#define COL8_FFFFFF							0x00ffffff
+#define COLOR(r, g, b) \
+	(unsigned int) (((r) & 0xff) << 16 | ((g) & 0xff) << 8 | ((b) & 0xff))
+// void palette_init(void);
+// void palette_set(int start, int end, unsigned char *rgb);
+extern unsigned int bytes_per_pixel;
+#define SETPIXEL(buf, bx, x, y, c)	*((unsigned int *) \
+	((buf) + (bx) * bytes_per_pixel * (y) + (x) * bytes_per_pixel)) = \
+	(unsigned int) (c)
+#define GETPIXEL(buf, bx, x, y)	((unsigned int) \
+	((buf) + (bx) * bytes_per_pixel * (y) + (x) * bytes_per_pixel))
+void varm_fill_rectangle(unsigned char *vram, int xsize, unsigned int c, 
 	int x0, int y0, int x1, int y1);
-void vram_draw_line(unsigned char *vram, int xsize, unsigned char c,
+void vram_draw_line(unsigned char *vram, int xsize, unsigned int c,
 	int x0, int y0, int x1, int y1);
-void vram_init_srceen(char *vram, int x, int y,  char *bg_name);
-void varm_draw_font(char *vram, int xsize, int x, int y, char c, char *font);
-void vram_draw_string(char *vram, int xsize, int x, int y, char c, unsigned char *s);
-void vram_draw_mfont(char *vram, int xsize, int x, int y, char c, char *font);
-void varm_draw_mstring(char *vram, int xsize, int x, int y, char c, unsigned char *s);
-void init_mouse_cursor(char *mouse, char bc);
-void vram_draw_block(char *vram, int vxsize, int pxsize, int pysize, 
-				 int px0, int py0, char *buf, int bxsize);
-int load_picture(char *filename, int *fat, char *vram, int bx, int x, int y, int mode);
-void vram_draw_icon(char *vram, int bxsize, int x, int y, int id);
+void vram_init_srceen(unsigned char *vram, int x, int y,  char *bg_name);
+void varm_draw_font(unsigned char *vram, int xsize, int x, int y, unsigned int c, char *font);
+void vram_draw_string(unsigned char *vram, int xsize, int x, int y, unsigned int c, unsigned char *s);
+void vram_draw_mfont(unsigned char *vram, int xsize, int x, int y, unsigned int c, char *font);
+void vram_draw_mstring(unsigned char *vram, int xsize, int x, int y, unsigned int c, unsigned char *s);
+void init_mouse_cursor(unsigned char *mouse, unsigned int bc);
+void vram_draw_block(unsigned char *vram, int vxsize, int pxsize, int pysize, 
+				 int px0, int py0, unsigned char *buf, int bxsize);
+int load_picture(char *filename, int *fat, unsigned char *vram, int bx, int x, int y, int mode);
+void vram_draw_icon(unsigned char *vram, int bxsize, int x, int y, int id);
 void vram_draw_menuitem(unsigned char *buf, int bxsize, int x, int y, int id, char *ds);
 
 /* dsctbl.c */
@@ -282,7 +289,7 @@ void task_sleep(struct TASK *task);
 void task_switch(void);
 
 /* window.c */
-void vrma_make_window(unsigned char *buf, int xsize, int ysize, char *title, char act);
+void vram_make_window(unsigned char *buf, int xsize, int ysize, char *title, char act);
 void sheet_draw_string(struct SHEET *sht, int x, int y, int c, int b, char *s, int l);
 void sheet_draw_mstring(struct SHEET *sht, int x, int y, int c, int b, char *s, int l);
 void vram_make_textbox(struct SHEET *sht, int x0, int y0, int sx, int sy, int c);
@@ -351,6 +358,7 @@ int kfseek(struct HFILE *file, int offset, int mode);
 #define OS_VERSION							0x1000
 #define EF_WALLPAPER						"BACK.JPG"
 #define UNUSED(x)							(void) (x)
+#define ABORT								while (1) {}
 extern struct SHEET *key_win;
 struct TASK *open_console_task(struct SHEET *sht, unsigned int memtotal);
 struct SHEET *open_console(struct SHTCTL *shtctl, unsigned int memtotal);

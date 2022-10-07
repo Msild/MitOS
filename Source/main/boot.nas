@@ -113,7 +113,8 @@ scrnVBE:
 		INT		0x10
 
 ; 记录画面模式
-		MOV		BYTE [VMODE],8
+		MOV		AX,[ES:DI+0x19]
+		MOV		[VMODE],AX
 		MOV		AX,[ES:DI+0x12]
 		MOV		[SCRNX],AX
 		MOV		AX,[ES:DI+0x14]

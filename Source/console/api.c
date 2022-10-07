@@ -40,7 +40,7 @@ int *mitapi(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int e
 		sht->flags = SHT_FLAG_APPWIN;
 		sht->mbtn = sht->mx = sht->my = 0;
 		sheet_init(sht, (char *) ebx + ds_base, esi, edi, eax);
-		vrma_make_window((char *) ebx + ds_base, esi, edi, (char *) ecx + ds_base, 0);
+		vram_make_window((char *) ebx + ds_base, esi, edi, (char *) ecx + ds_base, 0);
 		sheet_move(sht, ((shtctl->xsize - esi) / 2) & ~3, (shtctl->ysize - edi) / 2);
 		sheet_setheight(sht, shtctl->top); /* 窗口置于鼠标光标下层 */
 		key_win = sht;
@@ -277,7 +277,7 @@ int *mitapi(int edi, int esi, int ebp, int esp, int ebx, int edx, int ecx, int e
 		}
 	} else if (edx == 31) {
 		sht = (struct SHEET *) (ebx & 0xfffffffe);
-		varm_draw_mstring(sht->buf, sht->bxsize, esi, edi, eax, 
+		vram_draw_mstring(sht->buf, sht->bxsize, esi, edi, eax, 
 						   (char *) ebp + ds_base);
 		if ((ebx & 1) == 0) {
 			sheet_refresh(sht, esi, edi, esi + ecx * 8, edi + 8);

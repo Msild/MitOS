@@ -13,20 +13,20 @@ void black_srceen(int eip, char ecode, char *description)
 	char s[128];
 	varm_fill_rectangle(binfo->vram, binfo->scrnx, COL8_000000, 0, 0, 
 			 binfo->scrnx - 1, binfo->scrny - 1);
-	varm_draw_mstring(binfo->vram, binfo->scrnx,  7,  7, COL8_AAAAAA, 
+	vram_draw_mstring(binfo->vram, binfo->scrnx,  7,  7, COL8_AAAAAA, 
 		"A problem has been detected and MitOS has been "
 		"shut down to prevent damage to your computer.");
-	varm_draw_mstring(binfo->vram, binfo->scrnx,  7, 23, COL8_AAAAAA, 
+	vram_draw_mstring(binfo->vram, binfo->scrnx,  7, 23, COL8_AAAAAA, 
 		"If this is the first time you've seen this "
 		"stop error screen, restart your computer.");
-	varm_draw_mstring(binfo->vram, binfo->scrnx,  7, 39, COL8_AAAAAA, 
+	vram_draw_mstring(binfo->vram, binfo->scrnx,  7, 39, COL8_AAAAAA, 
 		"Techical information:");
-	varm_draw_mstring(binfo->vram, binfo->scrnx,  7, 55, COL8_AAAAAA, 
+	vram_draw_mstring(binfo->vram, binfo->scrnx,  7, 55, COL8_AAAAAA, 
 		"Description: ");
-	varm_draw_mstring(binfo->vram, binfo->scrnx, 84, 55, COL8_AAAAAA, 
+	vram_draw_mstring(binfo->vram, binfo->scrnx, 84, 55, COL8_AAAAAA, 
 		description);
 	sprintf(s, "ERRORCODE: %02X    EIP: %08X", ecode, eip);
-	varm_draw_mstring(binfo->vram, binfo->scrnx,  7, 71, COL8_AAAAAA, s);
+	vram_draw_mstring(binfo->vram, binfo->scrnx,  7, 71, COL8_AAAAAA, s);
 	io_cli();
 	for (;;) {
 		io_hlt();

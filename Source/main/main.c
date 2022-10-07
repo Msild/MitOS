@@ -34,7 +34,7 @@ void Main(void)
 	unsigned int memtotal;
 	struct MOUSE_DEC mdec;
 	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
-	unsigned char *buf_back, buf_mouse[256];
+	unsigned int *buf_back, buf_mouse[256];
 	struct SHEET *sht_back, *sht_mouse;
 	struct TASK *task_main, *task;
 	static char keytable0[0x80] = {
@@ -80,12 +80,8 @@ void Main(void)
 	memman_free(memman, 0x00400000, memtotal - 0x00400000);
 
 	// palette_init();
-	#define COLOR(r, g, b)	(unsigned int) (((unsigned char) r) + \
-											((unsigned char) g) * 256 + \
-											((unsigned char) b) * 256 * 255) * 256
-	for (i = 0; i < binfo->scrnx * binfo->scrny * 4; i += 3) {
-		*((unsigned int *) (binfo->vram + i)) = GetCustomColor(0xff41F1E5);
-	}  while (1);
+	bytes_per_pixel = binfo->vmode >> 3;
+	vram_init_srceen(binfo->vram, binfo->scrnx, binfo->scrny, EF_WALLPAPER);ABORT
 	shtctl = shtctl_init(memman, binfo->vram, binfo->scrnx, binfo->scrny);
 	task_main = task_init(memman);
 	fifo.task = task_main;
@@ -94,7 +90,9 @@ void Main(void)
 
 	/* sht_back */
 	sht_back = sheet_alloc(shtctl);
-	buf_back = (unsigned char *) memman_alloc_4k(memman, binfo->scrnx * binfo->scrny);
+	buf_back = (unsigned int *) 
+		memman_alloc_4k(memman, binfo->scrnx * binfo->scrny * 
+		(sizeof(unsigned int) / sizeof(unsigned char)));
 	sheet_init(sht_back, buf_back, binfo->scrnx, binfo->scrny, -1);
 	varm_fill_rectangle(binfo->vram, binfo->scrnx, COL8_000000, 0, 0, binfo->scrnx - 1, binfo->scrny - 1);
 	static char *logo[] = {
@@ -115,9 +113,9 @@ void Main(void)
 		vram_draw_string(buf_back, binfo->scrnx, (binfo->scrnx - 38 * 8) / 2, i, COL8_AAAAAA, logo[j]);
 		vram_draw_string(buf_back, binfo->scrnx, (binfo->scrnx - 38 * 8) / 2 + 1, i, COL8_555555, logo[j]);
 	}
-	varm_draw_mstring(buf_back, binfo->scrnx, (binfo->scrnx - 15 * 6) / 2 + 1, 
+	vram_draw_mstring(buf_back, binfo->scrnx, (binfo->scrnx - 15 * 6) / 2 + 1, 
 					   (binfo->scrny - 5 * 16) / 2 + 48, 8, "Version 1.0.0.0");
-	varm_draw_mstring(buf_back, binfo->scrnx, (binfo->scrnx - 46 * 6) / 2, 
+	vram_draw_mstring(buf_back, binfo->scrnx, (binfo->scrnx - 46 * 6) / 2, 
 					   binfo->scrny - 32, 8, 
 					   "Copyright (c) MLworkshop, All Rights Reserved.");
 	sheet_refresh(sht_back, 0, 0, binfo->scrnx - 1, binfo->scrny - 1);
@@ -744,9 +742,10 @@ struct SHEET *open_console(struct SHTCTL *shtctl, unsigned int memtotal)
 {
 	struct MEMMAN *memman = (struct MEMMAN *) MEMMAN_ADDR;
 	struct SHEET *sht = sheet_alloc(shtctl);
-	unsigned char *buf = (unsigned char *) memman_alloc_4k(memman, 256 * 165);
+	unsigned int *buf = (unsigned char *) 
+		memman_alloc_4k(memman, 256 * 165 * (sizeof(unsigned int) / sizeof(unsigned char)));
 	sheet_init(sht, buf, 256, 165, -1); /* 无透明色 */
-	vrma_make_window(buf, 256, 165, "Console", 0);
+	vram_make_window(buf, 256, 165, "Console", 0);
 	vram_draw_icon(buf, 256, 4, 4, 1);
 	vram_make_textbox(sht, 8, 28, 240, 128, COL8_000000);
 	sht->task = open_console_task(sht, memtotal);

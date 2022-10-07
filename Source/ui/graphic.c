@@ -8,73 +8,76 @@
 #include <stddef.h>
 #include <stdio.h>
 
-unsigned char rgb2pal(int r, int g, int b, int x, int y);
+unsigned int bytes_per_pixel;
 
-void palette_init(void)
-{
-	static unsigned char table_rgb[16 * 3] = {
-		0x00, 0x00, 0x00,	/* 0.黑色 */
-		0x00, 0x00, 0xaa,	/* 1.深蓝 */
-		0x00, 0xaa, 0x00,	/* 2.深绿 */
-		0x00, 0xaa, 0xaa,	/* 3.湖蓝 */
-		0xaa, 0x00, 0x00,	/* 4.深红 */
-		0xaa, 0x00, 0xaa,	/* 5.紫色 */
-		0xaa, 0x55, 0x00,	/* 6.棕色 */
-		0xaa, 0xaa, 0xaa,	/* 7.灰色 */
-		0x55, 0x55, 0x55,	/* 8.深灰 */
-		0x55, 0x55, 0xff,	/* 9.蓝色 */
-		0x55, 0xff, 0x55,	/* A.绿色 */
-		0x55, 0xff, 0xff,	/* B.天蓝 */
-		0xff, 0x55, 0x55,	/* C.红色 */
-		0xff, 0x55, 0xff,	/* D.粉红 */
-		0xff, 0xff, 0x55,	/* E.黄色 */
-		0xff, 0xff, 0xff	/* F.白色 */
-	};
-	palette_set(0, 15, table_rgb);
+// unsigned char rgb2pal(int r, int g, int b, int x, int y);
 
-	unsigned char table2[216 * 3];
-	int r, g, b;
-	for (b = 0; b < 6; b++) {
-		for (g = 0; g < 6; g++) {
-			for (r = 0; r < 6; r++) {
-				table2[(r + g * 6 + b * 36) * 3 + 0] = r * 51;
-				table2[(r + g * 6 + b * 36) * 3 + 1] = g * 51;
-				table2[(r + g * 6 + b * 36) * 3 + 2] = b * 51;
-			}
-		}
-	}
-	palette_set(16, 231, table2);
-	return;
-}
+// void palette_init(void)
+// {
+// 	static unsigned char table_rgb[16 * 3] = {
+// 		0x00, 0x00, 0x00,	/* 0.黑色 */
+// 		0x00, 0x00, 0xaa,	/* 1.深蓝 */
+// 		0x00, 0xaa, 0x00,	/* 2.深绿 */
+// 		0x00, 0xaa, 0xaa,	/* 3.湖蓝 */
+// 		0xaa, 0x00, 0x00,	/* 4.深红 */
+// 		0xaa, 0x00, 0xaa,	/* 5.紫色 */
+// 		0xaa, 0x55, 0x00,	/* 6.棕色 */
+// 		0xaa, 0xaa, 0xaa,	/* 7.灰色 */
+// 		0x55, 0x55, 0x55,	/* 8.深灰 */
+// 		0x55, 0x55, 0xff,	/* 9.蓝色 */
+// 		0x55, 0xff, 0x55,	/* A.绿色 */
+// 		0x55, 0xff, 0xff,	/* B.天蓝 */
+// 		0xff, 0x55, 0x55,	/* C.红色 */
+// 		0xff, 0x55, 0xff,	/* D.粉红 */
+// 		0xff, 0xff, 0x55,	/* E.黄色 */
+// 		0xff, 0xff, 0xff	/* F.白色 */
+// 	};
+// 	palette_set(0, 15, table_rgb);
 
-void palette_set(int start, int end, unsigned char *rgb)
-{
-	int i, eflags;
-	eflags = io_load_eflags();	/* 记录中断许可标志 */
-	io_cli(); 					/* 禁止中断 */
-	io_out8(0x03c8, start);
-	for (i = start; i <= end; i++) {
-		io_out8(0x03c9, rgb[0] / 4);
-		io_out8(0x03c9, rgb[1] / 4);
-		io_out8(0x03c9, rgb[2] / 4);
-		rgb += 3;
-	}
-	io_store_eflags(eflags);	/* 复原中断许可标志 */
-	return;
-}
+// 	unsigned char table2[216 * 3];
+// 	int r, g, b;
+// 	for (b = 0; b < 6; b++) {
+// 		for (g = 0; g < 6; g++) {
+// 			for (r = 0; r < 6; r++) {
+// 				table2[(r + g * 6 + b * 36) * 3 + 0] = r * 51;
+// 				table2[(r + g * 6 + b * 36) * 3 + 1] = g * 51;
+// 				table2[(r + g * 6 + b * 36) * 3 + 2] = b * 51;
+// 			}
+// 		}
+// 	}
+// 	palette_set(16, 231, table2);
+// 	return;
+// }
+
+// void palette_set(int start, int end, unsigned char *rgb)
+// {
+// 	int i, eflags;
+// 	eflags = io_load_eflags();	/* 记录中断许可标志 */
+// 	io_cli(); 					/* 禁止中断 */
+// 	io_out8(0x03c8, start);
+// 	for (i = start; i <= end; i++) {
+// 		io_out8(0x03c9, rgb[0] / 4);
+// 		io_out8(0x03c9, rgb[1] / 4);
+// 		io_out8(0x03c9, rgb[2] / 4);
+// 		rgb += 3;
+// 	}
+// 	io_store_eflags(eflags);	/* 复原中断许可标志 */
+// 	return;
+// }
 
 void varm_fill_rectangle(unsigned char *vram, int xsize, 
-	unsigned char c, int x0, int y0, int x1, int y1)
+	unsigned int c, int x0, int y0, int x1, int y1)
 {
 	int x, y;
 	for (y = y0; y <= y1; y++) {
-		for (x = x0; x <= x1; x++)
-			vram[y * xsize + x] = c;
+		for (x = x0; x <= x1; x++) {
+			SETPIXEL(vram, xsize, x, y, c);
+		}
 	}
 	return;
 }
 
-void vram_draw_line(unsigned char *vram, int xsize, unsigned char c,
+void vram_draw_line(unsigned char *vram, int xsize, unsigned int c,
 	int x0, int y0, int x1, int y1)
 {
 	int i, x, y, len, dx, dy;
@@ -115,14 +118,14 @@ void vram_draw_line(unsigned char *vram, int xsize, unsigned char c,
 		}
 	}
 	for (i = 0; i < len; i++) {
-		vram[(y >> 10) * xsize + (x >> 10)] = c;
+		SETPIXEL(vram, xsize, x >> 10, y >> 10, c);
 		x += dx;
 		y += dy;
 	}
 	return;
 }
 
-void vram_init_srceen(char *vram, int x, int y, char *bg_name)
+void vram_init_srceen(unsigned char *vram, int x, int y, char *bg_name)
 {
 	if (bg_name != NULL) {
 		int *fat;
@@ -137,33 +140,34 @@ void vram_init_srceen(char *vram, int x, int y, char *bg_name)
 	varm_fill_rectangle(vram, x, COL8_FFFFFF,  0,     y - 27, x -  1, y - 27);
 	varm_fill_rectangle(vram, x, COL8_AAAAAA,  0,     y - 26, x -  1, y -  1);
 
-	vram_init_taskbar(vram, x, y);
+	//vram_init_taskbar(vram, x, y);
 
 	vram_draw_string(vram, x, 12, y - 20, COL8_000000, "MitOS");
 	vram_draw_string(vram, x, 11, y - 21, COL8_555555, "MitOS");
 	return;
 }
 
-void varm_draw_font(char *vram, int xsize, int x, int y, char c, char *font)
+void varm_draw_font(unsigned char *vram, int xsize, int x, int y, unsigned int c, char *font)
 {
 	int i;
-	char *p, d /* data */;
+	int *p; 
+	char d; /* data */;
 	for (i = 0; i < 16; i++) {
 		p = vram + (y + i) * xsize + x;
 		d = font[i];
-		if ((d & 0x80) != 0) { p[0] = c; }
-		if ((d & 0x40) != 0) { p[1] = c; }
-		if ((d & 0x20) != 0) { p[2] = c; }
-		if ((d & 0x10) != 0) { p[3] = c; }
-		if ((d & 0x08) != 0) { p[4] = c; }
-		if ((d & 0x04) != 0) { p[5] = c; }
-		if ((d & 0x02) != 0) { p[6] = c; }
-		if ((d & 0x01) != 0) { p[7] = c; }
+		if ((d & 0x80) != 0) { SETPIXEL(vram, xsize, x + 0, y + i, c); }
+		if ((d & 0x40) != 0) { SETPIXEL(vram, xsize, x + 1, y + i, c); }
+		if ((d & 0x20) != 0) { SETPIXEL(vram, xsize, x + 2, y + i, c); }
+		if ((d & 0x10) != 0) { SETPIXEL(vram, xsize, x + 3, y + i, c); }
+		if ((d & 0x08) != 0) { SETPIXEL(vram, xsize, x + 4, y + i, c); }
+		if ((d & 0x04) != 0) { SETPIXEL(vram, xsize, x + 5, y + i, c); }
+		if ((d & 0x02) != 0) { SETPIXEL(vram, xsize, x + 6, y + i, c); }
+		if ((d & 0x01) != 0) { SETPIXEL(vram, xsize, x + 7, y + i, c); }
 	}
 	return;
 }
 
-void vram_draw_string(char *vram, int xsize, int x, int y, char c, unsigned char *s)
+void vram_draw_string(unsigned char *vram, int xsize, int x, int y, unsigned int c, unsigned char *s)
 {
 	extern char ascii[4096];
 	for (; *s != 0x00; s++) {
@@ -173,26 +177,27 @@ void vram_draw_string(char *vram, int xsize, int x, int y, char c, unsigned char
 	return;
 }
 
-void vram_draw_mfont(char *vram, int xsize, int x, int y, char c, char *font)
+void vram_draw_mfont(unsigned char *vram, int xsize, int x, int y, unsigned int c, char *font)
 {
 	int i;
-	char *p, d /* data */;
+	int *p;
+	char d; /* data */;
 	for (i = 0; i < 8; i++) {
 		p = vram + (y + i) * xsize + x;
 		d = font[i];
-		if ((d & 0x80) != 0) { p[0] = c; }
-		if ((d & 0x40) != 0) { p[1] = c; }
-		if ((d & 0x20) != 0) { p[2] = c; }
-		if ((d & 0x10) != 0) { p[3] = c; }
-		if ((d & 0x08) != 0) { p[4] = c; }
-		if ((d & 0x04) != 0) { p[5] = c; }
-		if ((d & 0x02) != 0) { p[6] = c; }
-		if ((d & 0x01) != 0) { p[7] = c; }
+		if ((d & 0x80) != 0) { SETPIXEL(vram, xsize, x + 0, y + i, c); }
+		if ((d & 0x40) != 0) { SETPIXEL(vram, xsize, x + 1, y + i, c); }
+		if ((d & 0x20) != 0) { SETPIXEL(vram, xsize, x + 2, y + i, c); }
+		if ((d & 0x10) != 0) { SETPIXEL(vram, xsize, x + 3, y + i, c); }
+		if ((d & 0x08) != 0) { SETPIXEL(vram, xsize, x + 4, y + i, c); }
+		if ((d & 0x04) != 0) { SETPIXEL(vram, xsize, x + 5, y + i, c); }
+		if ((d & 0x02) != 0) { SETPIXEL(vram, xsize, x + 6, y + i, c); }
+		if ((d & 0x01) != 0) { SETPIXEL(vram, xsize, x + 7, y + i, c); }
 	}
 	return;
 }
 
-void varm_draw_mstring(char *vram, int xsize, int x, int y, char c, unsigned char *s)
+void vram_draw_mstring(unsigned char *vram, int xsize, int x, int y, unsigned int c, unsigned char *s)
 {
 	extern char mchar[2048];
 	for (; *s != 0x00; s++) {
@@ -202,7 +207,7 @@ void varm_draw_mstring(char *vram, int xsize, int x, int y, char c, unsigned cha
 	return;
 }
 
-void init_mouse_cursor(char *mouse, char bc)
+void init_mouse_cursor(unsigned char *mouse, unsigned int bc)
 {
 	/* 准备鼠标指针（16*16） */
 	static char cursor[16][16] = {
@@ -228,32 +233,32 @@ void init_mouse_cursor(char *mouse, char bc)
 	for (y = 0; y < 16; y++) {
 		for (x = 0; x < 16; x++) {
 			if (cursor[y][x] == '*') {
-				mouse[y * 16 + x] = COL8_000000;
+				SETPIXEL(mouse, 16, x, y, COL8_000000);
 			}
 			if (cursor[y][x] == 'O') {
-				mouse[y * 16 + x] = COL8_FFFFFF;
+				SETPIXEL(mouse, 16, x, y, COL8_FFFFFF);
 			}
 			if (cursor[y][x] == '.') {
-				mouse[y * 16 + x] = bc;
+				SETPIXEL(mouse, 16, x, y, bc);
 			}
 		}
 	}
 	return;
 }
 
-void vram_draw_block(char *vram, int vxsize, int pxsize, int pysize, 
-				 int px0, int py0, char *buf, int bxsize)
+void vram_draw_block(unsigned char *vram, int vxsize, int pxsize, int pysize, 
+				 int px0, int py0, unsigned char *buf, int bxsize)
 {
 	int x, y;
 	for (y = 0; y < pysize; y++) {
 		for (x = 0; x < pxsize; x++) {
-			vram[(py0 + y) * vxsize + (px0 + x)] = buf[y * bxsize + x];
+			SETPIXEL(vram, vxsize, px0 + x, py0 + y, GETPIXEL(buf, bxsize, x, y));
 		}
 	}
 	return;
 }
 
-int load_picture(char *filename, int *fat, char *vram, int bx, int x, int y, int mode)
+int load_picture(char *filename, int *fat, unsigned char *vram, int bx, int x, int y, int mode)
 {
 	int i, j, x0 = 0, y0 = 0, info[8];
 	unsigned char *filebuf, r, g, b;
@@ -295,7 +300,7 @@ int load_picture(char *filename, int *fat, char *vram, int bx, int x, int y, int
 			r = picbuf[i * info[2] + j].r;
 			g = picbuf[i * info[2] + j].g;
 			b = picbuf[i * info[2] + j].b;
-			vram[(y0 + i) * bx + (x0 + j)] = rgb2pal(r, g, b, j, i);
+			SETPIXEL(vram, bx, x0 + j, y0 + i, COLOR(r, g, b));
 		}
 	}
 	memman_free_4k(memman, (int) filebuf, fsize);
@@ -304,23 +309,23 @@ int load_picture(char *filename, int *fat, char *vram, int bx, int x, int y, int
 	return 0;
 }
 
-unsigned char rgb2pal(int r, int g, int b, int x, int y)
-{
-	static int table[4] = { 3, 1, 0, 2 };
-	int i;
-	x &= 1; /* 判断奇偶 */
-	y &= 1;
-	i = table[x + y * 2];	/* 生成中间色 */
-	r = (r * 21) / 256;	/* r = 0~20 */
-	g = (g * 21) / 256;
-	b = (b * 21) / 256;
-	r = (r + i) / 4;	/* r = 0~5 */
-	g = (g + i) / 4;
-	b = (b + i) / 4;
-	return 16 + r + g * 6 + b * 36;
-}
+// unsigned char rgb2pal(int r, int g, int b, int x, int y)
+// {
+// 	static int table[4] = { 3, 1, 0, 2 };
+// 	int i;
+// 	x &= 1; /* 判断奇偶 */
+// 	y &= 1;
+// 	i = table[x + y * 2];	/* 生成中间色 */
+// 	r = (r * 21) / 256;	/* r = 0~20 */
+// 	g = (g * 21) / 256;
+// 	b = (b * 21) / 256;
+// 	r = (r + i) / 4;	/* r = 0~5 */
+// 	g = (g + i) / 4;
+// 	b = (b + i) / 4;
+// 	return 16 + r + g * 6 + b * 36;
+// }
 
-void vram_draw_icon(char *vram, int bxsize, int x, int y, int id)
+void vram_draw_icon(unsigned char *vram, int bxsize, int x, int y, int id)
 {
 	// if (*resszie != 0) {
 	// 	int info[2];
@@ -346,6 +351,6 @@ void vram_draw_icon(char *vram, int bxsize, int x, int y, int id)
 void vram_draw_menuitem(unsigned char *buf, int bxsize, int x, int y, int id, char *ds)
 {
 	// vram_draw_icon(buf, bxsize, x, y, id);
-	// varm_draw_mstring(buf, bxsize, x + 20, y + 4, COL8_000000, ds);
+	// vram_draw_mstring(buf, bxsize, x + 20, y + 4, COL8_000000, ds);
 	// return;
 }

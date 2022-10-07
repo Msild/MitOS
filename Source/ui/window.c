@@ -6,7 +6,7 @@
 
 #include "../MitOS.h"
 
-void vrma_make_window(unsigned char *buf, 
+void vram_make_window(unsigned char *buf, 
 				  int xsize, int ysize, char *title, char act)
 {
 	varm_fill_rectangle(buf, xsize, COL8_555555, 0, 0, xsize - 1, ysize - 1);
@@ -34,7 +34,7 @@ void vram_make_wintitle(unsigned char *buf, int xsize, char *title, char act)
 		"                "
 	};
 	int x, y;
-	char c, tc, tbc;
+	int c, tc, tbc;
 	if (act != 0) {
 		tc = COL8_FFFFFF;
 		tbc = COL8_0000AA;
@@ -72,7 +72,7 @@ void sheet_draw_mstring(struct SHEET *sht, int x, int y,
 							int c, int b, char *s, int l)
 {
 	varm_fill_rectangle(sht->buf, sht->bxsize, b, x, y, x + l * 6 - 1, y + 7);
-	varm_draw_mstring(sht->buf, sht->bxsize, x, y, c, s);
+	vram_draw_mstring(sht->buf, sht->bxsize, x, y, c, s);
 	sheet_refresh(sht, x, y, x + l * 6, y + 8);
 }
 
@@ -87,7 +87,7 @@ void vram_make_textbox(struct SHEET *sht, int x0, int y0, int sx, int sy, int c)
 void vram_change_wintitle(struct SHEET *sht, char act)
 {
 	int x, y, xsize = sht->bxsize;
-	char c, tc_new, tbc_new, tc_old, tbc_old, *buf = sht->buf;
+	int c, tc_new, tbc_new, tc_old, tbc_old, *buf = sht->buf;
 	if (act != 0) {
 		tc_new  = COL8_FFFFFF;
 		tbc_new = COL8_0000AA;
